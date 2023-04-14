@@ -3,17 +3,22 @@
 ### ARGUMENTS #################################################################
 
 if [ -z "$1" ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
-    man csv2netmap.1 || ronn -r <README.md | man -l -
-    exit
+	man csv2netmap.1 || ronn -r <README.md | man -l -
+	exit
 fi
 
 FILE_IN="$1"
 FILE_OUT="$2"
 IGNORE_CELLS="$3"
 
+if ! [ -f "$FILE_IN" ]; then
+	echo "FILE_IN not found: $FILE_IN"
+	exit 1
+fi
+
 if [ -z "$FILE_OUT" ]; then
-    echo "FILE_OUT is unset or empty"
-    exit 1
+	echo "FILE_OUT is unset or empty: $FILE_OUT"
+	exit 1
 fi
 
 DATA=$(cat "$FILE_IN")
@@ -41,42 +46,42 @@ edge [
 
 # set network colors
 for ROW in $DATA; do
-    COUNTER=0
-    ROW_DATA=$(echo "$ROW" | tr ',' ' ')
-    for CELL in $ROW_DATA; do
-        COUNTER=$((COUNTER + 1))
-        COLOR_DATA=""
-        if [ "$COUNTER" != 1 ]; then
-            if [ -n "$CELL" ]; then
-                if ! echo "$IGNORE_CELLS" | grep -qF "$CELL"; then
-                    COLOR_DATA="\"$CELL\" [color=lightcoral]"
-                    if ! grep -qxF "$COLOR_DATA" <"$FILE_OUT"; then
-                        echo "$COLOR_DATA" >>"$FILE_OUT"
-                    fi
-                fi
-            fi
-        fi
-    done
+	COUNTER=0
+	ROW_DATA=$(echo "$ROW" | tr ',' ' ')
+	for CELL in $ROW_DATA; do
+		COUNTER=$((COUNTER + 1))
+		COLOR_DATA=""
+		if [ "$COUNTER" != 1 ]; then
+			if [ -n "$CELL" ]; then
+				if ! echo "$IGNORE_CELLS" | grep -qF "$CELL"; then
+					COLOR_DATA="\"$CELL\" [color=lightcoral]"
+					if ! grep -qxF "$COLOR_DATA" <"$FILE_OUT"; then
+						echo "$COLOR_DATA" >>"$FILE_OUT"
+					fi
+				fi
+			fi
+		fi
+	done
 done
 
 echo "" >>"$FILE_OUT"
 
 # add hosts
 for ROW in $DATA; do
-    COUNTER=0
-    ROW_DATA=$(echo "$ROW" | tr ',' ' ')
-    for CELL in $ROW_DATA; do
-        COUNTER=$((COUNTER + 1))
-        if [ "$COUNTER" = 1 ]; then
-            HOST="$CELL"
-        else
-            if [ -n "$CELL" ]; then
-                if ! echo "$IGNORE_CELLS" | grep -qF "$CELL"; then
-                    echo "\"$HOST\" -- \"$CELL\";" >>"$FILE_OUT"
-                fi
-            fi
-        fi
-    done
+	COUNTER=0
+	ROW_DATA=$(echo "$ROW" | tr ',' ' ')
+	for CELL in $ROW_DATA; do
+		COUNTER=$((COUNTER + 1))
+		if [ "$COUNTER" = 1 ]; then
+			HOST="$CELL"
+		else
+			if [ -n "$CELL" ]; then
+				if ! echo "$IGNORE_CELLS" | grep -qF "$CELL"; then
+					echo "\"$HOST\" -- \"$CELL\";" >>"$FILE_OUT"
+				fi
+			fi
+		fi
+	done
 done
 
 echo "
